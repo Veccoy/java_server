@@ -12,9 +12,9 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		System.out.println("New connection with client#" + clientNumber + " at" + socket);
 	}
 	
-	public void run() { // Création d'un thread qui envoie un message à un client
+	public void run() { // CrÃ©ation d'un thread qui envoie un message Ã  un client
 		try {
-			DataOutputStream out = new DataOutputStream(socket.getOutputStream()); // création du canal d’envoi
+			DataOutputStream out = new DataOutputStream(socket.getOutputStream()); // crÃ©ation du canal d'envoi
 			out.writeUTF("Hello from server - you are client#" + clientNumber); // envoi du message
 		} 
 		catch (IOException e) {

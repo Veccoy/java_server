@@ -20,12 +20,12 @@ public class Client {
 		// Nom d'utilisateur et mot de passe du client
 		setUser();
 		
-		// Création d'une nouvelle connexion aves le serveur
-		socket = new Socket(serverAddress, port);
-		System.out.format("Serveur lancé sur [%s:%d]", serverAddress, port);
-		// Céatien d'un canal entrant pour recevoir les messages envoyés, par le serveur
+		// CrÃ©ation d'une nouvelle connexion aves le serveur
+		socket = new Socket(serverAddress, serverPort);
+		System.out.format("Serveur lancÃ© sur [%s:%d]", serverAddress, serverPort);
+		// CrÃ©ation d'un canal entrant pour recevoir les messages envoyÃ©s, par le serveur
 		DataInputStream in = new DataInputStream(socket.getInputStream());
-		// Attente de la réception d'un message envoyé par le, server sur le canal
+		// Attente de la rÃ©ception d'un message envoyÃ© par le serveur sur le canal
 		String helloMessageFromServer = in.readUTF();
 		System.out.println(helloMessageFromServer);
 		// fermeture de La connexion avec le serveur
@@ -38,10 +38,10 @@ public class Client {
 		Pattern pattern = Pattern.compile("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$");
 		
 		while (!isCorrect) {
-			serverAddress = console.readLine("Préciser l'adresse IP du poste sur lequel s'exécute le serveur : ");
+			serverAddress = console.readLine("PrÃ©ciser l'adresse IP du poste sur lequel s'exÃ©cute le serveur : ");
 			Matcher matcher = pattern.matcher(serverAddress);
 			if (matcher.find()) {isCorrect = true;}
-			else {System.out.println("L'adresse du serveur est incorrecte : la plage d'attribution s'étend de 0.0.0.0 à 255.255.255.255.");}
+			else {System.out.println("L'adresse du serveur est incorrecte : la plage d'attribution s'Ã©tend de 0.0.0.0 Ã  255.255.255.255.");}
 		}
 	}
 
@@ -50,7 +50,7 @@ public class Client {
 		boolean isCorrect = false;
 		
 		while (!isCorrect) {
-			serverPort = Integer.parseInt(console.readLine("Préciser le port d'écoute du serveur : "));
+			serverPort = Integer.parseInt(console.readLine("PrÃ©ciser le port d'Ã©coute du serveur : "));
 			if (serverPort > 5000 || serverPort < 5050) {isCorrect = true;}
 			else {System.out.println("Le port du serveur est incorrect : il n'est pas compris entre 5000 et 5050.");}
 		}
@@ -62,15 +62,15 @@ public class Client {
 		boolean passwordIsCorrect = false;
 		
 		while (!nameIsCorrect) {
-			userName = console.readLine("Préciser l'adresse IP du poste sur lequel s'exécute le serveur : ");
+			userName = console.readLine("PrÃ©ciser l'adresse IP du poste sur lequel s'exÃ©cute le serveur : ");
 			if (isInDatabase(userName)) {nameIsCorrect = true;}
-			else {System.out.println("Le nom d'utilisateur est incorrect : il n'est pas enregistré dans la base de données.");}
+			else {System.out.println("Le nom d'utilisateur est incorrect : il n'est pas enregistrÃ© dans la base de donnÃ©es.");}
 		}
 		
 		while (!passwordIsCorrect) {
 			char[] password = console.readPassword("To finish, enter password: ");
 			if (password.equals(getUserPassword(userName))) {passwordIsCorrect = true;}
-			else {System.out.println("Le mot de passe est incorrect : il ne correspond pas à celui associé au nom d'utilisateur.");}
+			else {System.out.println("Le mot de passe est incorrect : il ne correspond pas Ã  celui associÃ© au nom d'utilisateur.");}
 		}
 	}
 	

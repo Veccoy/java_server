@@ -13,26 +13,26 @@ public class Server {
 
 	public static void main(String[] args) throws Exception
 	{		
-		// Compteur incrémenté à chaque connexion d'un client au serveur
+		// Compteur incrÃ©mentÃ© Ã  chaque connexion d'un client au serveur
 		int clientNumber = 0;
 		
 		// Adresse et port du serveur
 		setServerAddress();
 		setServerPort();
 
-		// Création de la connexion pour communiquer avec les clients
+		// CrÃ©ation de la connexion pour communiquer avec les clients
 		Listener = new ServerSocket();
 		Listener.setReuseAddress(true);
 		InetAddress serverIP = InetAddress.getByName(serverAddress);
-		// Association de l'adresse et du port à la connexion
+		// Association de l'adresse et du port Ã  la connexion
 		Listener.bind(new InetSocketAddress(serverIP, serverPort));
 		System.out.format("The server is running on %s:%d%n", serverAddress, serverPort);
 		
 		try {
-			// À chaque fois qu'un nouveau client se connecte, on exécute la fonction run() de l'objet ClientHandler
+			// Ã  chaque fois qu'un nouveau client se connecte, on exÃ©cute la fonction run() de l'objet ClientHandler
 			while (true) {
 				// Important : la fonction accept() est bloquante et attend qu'un prochain client se connecte
-				// Une nouvelle connection : on incémente le compteur clientNumber
+				// Une nouvelle connection : on incrÃ©mente le compteur clientNumber
 				new ClientHandler(Listener.accept(), clientNumber++).start();
 			}
 		}
@@ -48,10 +48,10 @@ public class Server {
 		Pattern pattern = Pattern.compile("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$");
 		
 		while (!isCorrect) {
-			serverAddress = console.readLine("Préciser l'adresse IP du poste sur lequel s'exécute le serveur : ");
+			serverAddress = console.readLine("PrÃ©ciser l'adresse IP du poste sur lequel s'exÃ©cute le serveur : ");
 			Matcher matcher = pattern.matcher(serverAddress);
 			if (matcher.find()) {isCorrect = true;}
-			else {System.out.println("L'adresse du serveur est incorrecte : la plage d'attribution s'étend de 0.0.0.0 à 255.255.255.255.");}
+			else {System.out.println("L'adresse du serveur est incorrecte : la plage d'attribution s'Ã©tend de 0.0.0.0 Ã  255.255.255.255.");}
 		}
 	}
 
@@ -60,7 +60,7 @@ public class Server {
 		boolean isCorrect = false;
 		
 		while (!isCorrect) {
-			serverPort = Integer.parseInt(console.readLine("Préciser le port d'écoute du serveur : "));
+			serverPort = Integer.parseInt(console.readLine("PrÃ©ciser le port d'Ã©coute du serveur : "));
 			if (serverPort > 5000 || serverPort < 5050) {isCorrect = true;}
 			else {System.out.println("Le port du serveur est incorrect : il n'est pas compris entre 5000 et 5050.");}
 		}
