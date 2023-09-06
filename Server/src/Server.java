@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -8,19 +9,20 @@ import java.util.Scanner;
 
 public class Server {
 	private static ServerSocket Listener; // Application Serveur
-	
+
+	private HashMap<String, String> userData = new HashMap<String, String>();
+
+	private static String serverAddress = "127.0.0.1";
+	private static int serverPort = 5000;
 	public static void main(String[] args) throws Exception {
 		Scanner scanner = new Scanner(System.in);
+
 		// Compteur incrémenté à chaque connexion d'un client au serveur
 		int clientNumber = 0;
 
 		// Adresse et port du serveur
-		String serverAddress = "127.0.0.1"; 
-		int serverPort = 5000; 
-		
-		serverAddress = getAddress(serverAddress, scanner);
-		serverPort = getPort(serverPort, scanner);
-		
+		serverAddress = getAddress(scanner);
+		serverPort = getPort(scanner);
 		
 		// Création de la connexien pour communiquer ave les, clients
 		Listener = new ServerSocket();
@@ -45,7 +47,7 @@ public class Server {
 		} 
 	}
 	
-	public static String getAddress(String serverAddress, Scanner scanner) {
+	public static String getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
 		
@@ -57,12 +59,12 @@ public class Server {
 		
 		if(!isAcceptableAddress) {
 			System.out.println("Invalid server address. Please try again!");
-			getAddress(serverAddress, scanner);
+			getAddress(scanner);
 		}
 		return serverAddress;
 	}
 	
-	public static int getPort(int serverPort, Scanner scanner) {
+	public static int getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		
 		System.out.println("Enter your server port : ");
@@ -72,9 +74,18 @@ public class Server {
 		}
 		else {
 			System.out.println("Invalid server port. Please try again!");
-			getPort(serverPort, scanner);
+			getPort(scanner);
 		}
 		return serverPort;
 	}
-			
+
+	public boolean checkLogin(String username, String password) {
+		if(!userData.containsKey(username)) {
+			userData.put(username, password); 
+		}
+		else if(userData.get(username).compareTo(password) != 0) {
+			return false; 
+		}
+		return true;
+	}
 };
