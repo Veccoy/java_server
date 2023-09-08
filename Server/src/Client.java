@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public class Client {
 	private static Socket socket;
 	public static String username; 
-	public static String password;
+	//public static String password;
 	public static Server server = new Server();
 
 	public static void main(String[] args) throws Exception {
@@ -75,7 +75,7 @@ public class Client {
 		System.out.println("Enter your username : ");
 		username = scanner.nextLine();
 		System.out.println("Enter your password : ");
-		password = scanner.nextLine();
+		String password = scanner.nextLine();
 		
 		boolean isAccount = server.checkUsername(username);
 		while (!isAccount) {
@@ -90,6 +90,6 @@ public class Client {
 			System.out.println("Enter your password: ");
 			password = scanner.nextLine();
 			wrongPassword = server.checkPassword(username, password);
-		} 
+		}
 	}
 }
