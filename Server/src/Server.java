@@ -19,8 +19,8 @@ public class Server {
 
 		// Adresse et port du serveur
 		Scanner scanner = new Scanner(System.in);
-		serverAddress = getAddress(scanner);
-		serverPort = getPort(scanner);
+		getAddress(scanner);
+		getPort(scanner);
 		
 		// Création de la connexien pour communiquer ave les, clients
 		Listener = new ServerSocket();
@@ -44,42 +44,43 @@ public class Server {
 		} 
 	}
 	
-	public static String getAddress(Scanner scanner) {
+	public static void getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
 		
 		while (!isAcceptableAddress) {
-			System.out.println("Enter your server address : ");
+			System.out.println("Enter the server address : ");
 			serverAddress = scanner.nextLine();
 			Pattern addressPattern = Pattern.compile(patternString);
 			Matcher matcher = addressPattern.matcher(serverAddress);
 			if (matcher.find()){
 				isAcceptableAddress = true;
 			} else {
-				System.out.println("Invalid server address. Please try again!");
+				System.out.println("Invalid server address: the IP address must be set between 0.0.0.0 and 255.255.255.255. Please try again!");
 			}
 		}
-			
-		return serverAddress;
 	}
 	
-	public static int getPort(Scanner scanner) {
+	public static void getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		
 		while (!isAcceptablePort) {
-			System.out.println("Enter your server port : ");
+			System.out.println("Enter the server port : ");
 			serverPort = Integer.parseInt(scanner.nextLine());
 			if((serverPort >= 5000) && (serverPort <= 5050)) {
 				isAcceptablePort = true; 
 			} else {
-				System.out.println("Invalid server port. Please try again!");
+				System.out.println("Invalid server port: the port must be set between 5000 and 5050. Please try again!");
 			}
 		}
-
-		return serverPort;
 	}
 
-	public boolean checkLogin(String username, String password) {
+	public boolean checkUsername(String username){
+
+		return true;
+	}
+
+	public boolean checkPassword(String username, String password) {
 		if(!userData.containsKey(username)) {
 			userData.put(username, password); 
 		}
@@ -87,5 +88,9 @@ public class Server {
 			return false; 
 		}
 		return true;
+	}
+
+	public void addUser(String username, String password){
+		
 	}
 };

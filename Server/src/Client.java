@@ -1,6 +1,8 @@
 import java.io.DataInputStream;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // Application client
 public class Client {
@@ -11,12 +13,10 @@ public class Client {
 
 	public static void main(String[] args) throws Exception {
 
-		// Adresse et port du serveur
-		String serverAddress = "127.0.0.1";
-		int port = 5000;
-		
-		// Nom d'utilisateur et mot de passe
+		// Adresse et port du serveur, Nom d'utilisateur et mot de passe
 		Scanner scanner = new Scanner(System.in);
+		String serverAddress = getAddress(scanner);
+		int port = getPort(scanner);
 		getLogin(scanner);
 
 		// Création d'une nouvelle connexion aves le serveur
@@ -34,17 +34,62 @@ public class Client {
 		socket.close();
 	}
 
+	public static String getAddress(Scanner scanner) {
+		boolean isAcceptableAddress = false;
+		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
+		String address = "";
+		
+		while (!isAcceptableAddress) {
+			System.out.println("Enter the server address : ");
+			address = scanner.nextLine();
+			Pattern addressPattern = Pattern.compile(patternString);
+			Matcher matcher = addressPattern.matcher(address);
+			if (matcher.find()){
+				isAcceptableAddress = true;
+			} else {
+				System.out.println("Invalid server address: the IP address must be set between 0.0.0.0 and 255.255.255.255. Please try again!");
+			}
+		}
+			
+		return address;
+	}
+	
+	public static int getPort(Scanner scanner) {
+		boolean isAcceptablePort = false;
+		int port = 0;
+		
+		while (!isAcceptablePort) {
+			System.out.println("Enter the server port : ");
+			port = Integer.parseInt(scanner.nextLine());
+			if((port >= 5000) && (port <= 5050)) {
+				isAcceptablePort = true; 
+			} else {
+				System.out.println("Invalid server port: the port must be set between 5000 and 5050. Please try again!");
+			}
+		}
+
+		return port;
+	}
+
 	public static void getLogin(Scanner scanner) {
 		System.out.println("Enter your username : ");
 		username = scanner.nextLine();
 		System.out.println("Enter your password : ");
 		password = scanner.nextLine();
-		boolean isAccount = server.checkLogin(username, password);
-		while(!isAccount) {
+		
+		boolean isAccount = server.checkUsername(username);
+		while (!isAccount) {
+			System.out.println("Nom d'utilisateur inconnu. Création d'un nouveau compte...");
+			server.addUser(username);
+			isAccount = server.checkUsername(username);
+		}
+
+		boolean wrongPassword = server.checkPassword(username, password);
+		while(wrongPassword) {
 			System.out.println("Erreur dans la saisie du mot de passe.");
-			System.out.println("Enter your password : ");
+			System.out.println("Enter your password: ");
 			password = scanner.nextLine();
-			isAccount = server.checkLogin(username, password);
+			wrongPassword = server.checkPassword(username, password);
 		} 
 	}
 }
