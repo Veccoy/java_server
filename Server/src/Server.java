@@ -9,9 +9,11 @@ import java.util.Scanner;
 // Application Serveur
 public class Server {
 	private static ServerSocket Listener;
-	private HashMap<String, String> userData = new HashMap<String, String>();
+	// private HashMap<String, String> userData = new HashMap<String, String>();
 	private static String serverAddress = "";
 	private static int serverPort = 0;
+	private static String databaseFile = "../client_database.json";
+	
 
 	public static void main(String[] args) throws Exception {
 		// Compteur incrémenté à chaque connexion d'un client au serveur
@@ -76,21 +78,17 @@ public class Server {
 	}
 
 	public boolean checkUsername(String username){
-
-		return true;
+		JsonAccessor jsonAccessor = new JsonAccessor(databaseFile);
+		return jsonAccessor.checkUsername(username);
 	}
 
 	public boolean checkPassword(String username, String password) {
-		if(!userData.containsKey(username)) {
-			userData.put(username, password); 
-		}
-		else if(userData.get(username).compareTo(password) != 0) {
-			return false; 
-		}
-		return true;
+		JsonAccessor jsonAccessor = new JsonAccessor(databaseFile);
+		return jsonAccessor.checkPassword(username, password);
 	}
 
 	public void addUser(String username, String password){
-		
+		JsonAccessor jsonAccessor = new JsonAccessor(databaseFile);
+		jsonAccessor.addUser(username, password);
 	}
 };
