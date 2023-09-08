@@ -6,21 +6,19 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Scanner;
 
-
+// Application Serveur
 public class Server {
-	private static ServerSocket Listener; // Application Serveur
-
+	private static ServerSocket Listener;
 	private HashMap<String, String> userData = new HashMap<String, String>();
+	private static String serverAddress = "";
+	private static int serverPort = 0;
 
-	private static String serverAddress = "127.0.0.1";
-	private static int serverPort = 5000;
 	public static void main(String[] args) throws Exception {
-		Scanner scanner = new Scanner(System.in);
-
 		// Compteur incrémenté à chaque connexion d'un client au serveur
 		int clientNumber = 0;
 
 		// Adresse et port du serveur
+		Scanner scanner = new Scanner(System.in);
 		serverAddress = getAddress(scanner);
 		serverPort = getPort(scanner);
 		
@@ -34,12 +32,11 @@ public class Server {
 		System.out.format("The server is running on %s:%d%n", serverAddress, serverPort);
 		
 		try {
-			// À chaque fois qu'un nouveau client se, connecte, on exécute la fonstion
-			// run() de l'objet ClientHandler
-
+			// À chaque fois qu'un nouveau client se connecte, on exécute la fonction run() de l'objet ClientHandler
 			while (true) {
 				// Important : la fonction accept() est bloquante: attend qu'un prochain client se connecte
-				// Une nouvetle connection : on incémente le compteur clientNumber new ClientHandler(Listener.accept(), clientNumber++).start();
+				// Une nouvetle connection : on incémente le compteur clientNumber
+				new ClientHandler(Listener.accept(), clientNumber++).start();
 			}
 		} finally {
 			// Fermeture de la connexion
@@ -49,33 +46,36 @@ public class Server {
 	
 	public static String getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
-		String patternString = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
+		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
 		
-		System.out.println("Enter your server address : ");
-		serverAddress = scanner.nextLine();
-		Pattern addressPattern = Pattern.compile(patternString);
-		Matcher hasPattern = addressPattern.matcher(serverAddress);
-		isAcceptableAddress = hasPattern.find();
-		
-		if(!isAcceptableAddress) {
-			System.out.println("Invalid server address. Please try again!");
-			getAddress(scanner);
+		while (!isAcceptableAddress) {
+			System.out.println("Enter your server address : ");
+			serverAddress = scanner.nextLine();
+			Pattern addressPattern = Pattern.compile(patternString);
+			Matcher matcher = addressPattern.matcher(serverAddress);
+			if (matcher.find()){
+				isAcceptableAddress = true;
+			} else {
+				System.out.println("Invalid server address. Please try again!");
+			}
 		}
+			
 		return serverAddress;
 	}
 	
 	public static int getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		
-		System.out.println("Enter your server port : ");
-		serverPort = Integer.parseInt(scanner.nextLine());
-		if((serverPort >= 5000) && (serverPort <= 5050)) {
-			isAcceptablePort = true; 
+		while (!isAcceptablePort) {
+			System.out.println("Enter your server port : ");
+			serverPort = Integer.parseInt(scanner.nextLine());
+			if((serverPort >= 5000) && (serverPort <= 5050)) {
+				isAcceptablePort = true; 
+			} else {
+				System.out.println("Invalid server port. Please try again!");
+			}
 		}
-		else {
-			System.out.println("Invalid server port. Please try again!");
-			getPort(scanner);
-		}
+
 		return serverPort;
 	}
 

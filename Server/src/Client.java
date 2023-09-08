@@ -4,18 +4,19 @@ import java.util.Scanner;
 
 // Application client
 public class Client {
-
 	private static Socket socket;
 	public static String username; 
 	public static String password;
 	public static Server server = new Server();
+
 	public static void main(String[] args) throws Exception {
-		Scanner scanner = new Scanner(System.in);
 
 		// Adresse et port du serveur
 		String serverAddress = "127.0.0.1";
 		int port = 5000;
 		
+		// Nom d'utilisateur et mot de passe
+		Scanner scanner = new Scanner(System.in);
 		getLogin(scanner);
 
 		// Création d'une nouvelle connexion aves le serveur
