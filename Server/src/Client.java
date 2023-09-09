@@ -4,12 +4,13 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 // Application client
 public class Client {
 	private static Socket socket;
-	public static String username; 
+	public static String username;
 	//public static String password;
-	public static Server server = new Server();
+	//public static Server server = new Server();
 
 	public static void main(String[] args) throws Exception {
 
@@ -17,7 +18,7 @@ public class Client {
 		Scanner scanner = new Scanner(System.in);
 		String serverAddress = getAddress(scanner);
 		int port = getPort(scanner);
-		getLogin(scanner);
+		checkLogin(scanner);
 
 		// Création d'une nouvelle connexion aves le serveur
 		socket = new Socket(serverAddress, port);
@@ -71,25 +72,26 @@ public class Client {
 		return port;
 	}
 
-	public static void getLogin(Scanner scanner) {
+	public static void checkLogin(Scanner scanner) {
+		JsonAccessor jsonAccessor = new JsonAccessor();
+
 		System.out.println("Enter your username : ");
 		username = scanner.nextLine();
 		System.out.println("Enter your password : ");
 		String password = scanner.nextLine();
 		
-		boolean isAccount = server.checkUsername(username);
-		while (!isAccount) {
+		if (!jsonAccessor.checkUsername(username)) {
 			System.out.println("Nom d'utilisateur inconnu. Création d'un nouveau compte...");
-			server.addUser(username);
-			isAccount = server.checkUsername(username);
+			jsonAccessor.addUser(username, password);
+			//jsonAccessor = new JsonAccessor(); // To reload the database with the new user
 		}
 
-		boolean wrongPassword = server.checkPassword(username, password);
-		while(wrongPassword) {
+		boolean correctPassword = jsonAccessor.checkPassword(username, password);;
+		while(!correctPassword) {
 			System.out.println("Erreur dans la saisie du mot de passe.");
 			System.out.println("Enter your password: ");
 			password = scanner.nextLine();
-			wrongPassword = server.checkPassword(username, password);
+			correctPassword = jsonAccessor.checkPassword(username, password);
 		}
 	}
 }

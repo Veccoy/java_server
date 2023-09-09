@@ -1,47 +1,78 @@
-import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 
 public class JsonAccessor {
-    private static String filename;
+    private static String databaseFile = "./database/clients.json";
+    private static String database;
 
-    public JsonAccessor(String JSONFile) {
-        filename = JSONFile;
-    }
-    
-    public static String getJSONFromFile() {
-        String jsonText = "";
+    public boolean checkUsername(String username) {
+        try (FileReader reader = new FileReader(databaseFile)) {
+            try {
+                JSONParser parser = new JSONParser();
+                Object object = parser.parse(reader);
+                JSONObject jsonObject = (JSONObject) object;
 
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(filename));
-            String line;
-
-            while ((line = bufferedReader.readLine()) != null) {
-                jsonText += line + "\n";
+                return jsonObject.containsKey(username);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
 
-             bufferedReader.close();
+            reader.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return jsonText;
-    }
-
-    public boolean checkUsername(String username) {
-        try {
-            JSONParser parser = new JSONParser();
-        }
-        return true;
+        return false;
     }
 
     public boolean checkPassword(String username, String password) {
-        return true;
+        try (FileReader reader = new FileReader(databaseFile)) {
+            try {
+                JSONParser parser = new JSONParser();
+                Object object = parser.parse(reader);
+                JSONObject jsonObject = (JSONObject) object;
+
+                if (password.equals(jsonObject.get(username))) {
+                    return true;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            
+            reader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public void addUser(String username, String password) {
+        try (FileReader reader = new FileReader(databaseFile)) {
+            try {
+                JSONParser parser = new JSONParser();
+                Object object = parser.parse(reader);
+                JSONObject jsonObject = (JSONObject) object;
+                jsonObject.put(username, password);
+                
+                reader.close();
 
+                try (FileWriter writer = new FileWriter(databaseFile)) {
+                    writer.write(jsonObject.toJSONString());
+                    writer.close();
+                } catch (Exception exc) {
+                    exc.printStackTrace();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                reader.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
-
 }

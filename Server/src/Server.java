@@ -11,9 +11,7 @@ public class Server {
 	private static ServerSocket Listener;
 	// private HashMap<String, String> userData = new HashMap<String, String>();
 	private static String serverAddress = "";
-	private static int serverPort = 0;
-	private static String databaseFile = "../client_database.json";
-	
+	private static int serverPort = 0;	
 
 	public static void main(String[] args) throws Exception {
 		// Compteur incrémenté à chaque connexion d'un client au serveur
@@ -75,20 +73,5 @@ public class Server {
 				System.out.println("Invalid server port: the port must be set between 5000 and 5050. Please try again!");
 			}
 		}
-	}
-
-	public boolean checkUsername(String username){
-		JsonAccessor jsonAccessor = new JsonAccessor(databaseFile);
-		return jsonAccessor.checkUsername(username);
-	}
-
-	public boolean checkPassword(String username, String password) {
-		JsonAccessor jsonAccessor = new JsonAccessor(databaseFile);
-		return jsonAccessor.checkPassword(username, password);
-	}
-
-	public void addUser(String username, String password){
-		JsonAccessor jsonAccessor = new JsonAccessor(databaseFile);
-		jsonAccessor.addUser(username, password);
 	}
 };
