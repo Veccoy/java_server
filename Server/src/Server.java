@@ -9,9 +9,9 @@ import java.util.Scanner;
 // Application Serveur
 public class Server {
 	private static ServerSocket Listener;
-	private HashMap<String, String> userData = new HashMap<String, String>();
+	// private HashMap<String, String> userData = new HashMap<String, String>();
 	private static String serverAddress = "";
-	private static int serverPort = 0;
+	private static int serverPort = 0;	
 
 	public static void main(String[] args) throws Exception {
 		// Compteur incrémenté à chaque connexion d'un client au serveur
@@ -22,7 +22,7 @@ public class Server {
 		getAddress(scanner);
 		getPort(scanner);
 		
-		// Création de la connexien pour communiquer ave les, clients
+		// Création de la connexion pour communiquer avec les clients
 		Listener = new ServerSocket();
 		Listener.setReuseAddress(true);
 		InetAddress serverIP = InetAddress.getByName(serverAddress);
@@ -73,24 +73,5 @@ public class Server {
 				System.out.println("Invalid server port: the port must be set between 5000 and 5050. Please try again!");
 			}
 		}
-	}
-
-	public boolean checkUsername(String username){
-
-		return true;
-	}
-
-	public boolean checkPassword(String username, String password) {
-		if(!userData.containsKey(username)) {
-			userData.put(username, password); 
-		}
-		else if(userData.get(username).compareTo(password) != 0) {
-			return false; 
-		}
-		return true;
-	}
-
-	public void addUser(String username, String password){
-		
 	}
 };
