@@ -22,7 +22,7 @@ public class Server {
 		getAddress(scanner);
 		getPort(scanner);
 		
-		// Création de la connexien pour communiquer ave les, clients
+		// Création de la connexion pour communiquer avec les clients
 		Listener = new ServerSocket();
 		Listener.setReuseAddress(true);
 		InetAddress serverIP = InetAddress.getByName(serverAddress);
