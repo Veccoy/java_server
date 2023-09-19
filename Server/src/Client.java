@@ -3,6 +3,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
@@ -49,26 +51,32 @@ public class Client {
 		out.writeUTF(inputName);
 
 		// Envoi de l'image d'entrée au serveur
-		BufferedImage image = ImageIO.read(new File(imageFolder + inputName));
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, "jpg", byteArrayOutputStream);
-		byte[] size = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
-        out.write(size);
-        out.write(byteArrayOutputStream.toByteArray());
-        out.flush();
-        System.out.println("Flushed: " + System.currentTimeMillis());
+		int bytesRead = 0;
+		File image = new File(imageFolder + inputName);
+		FileInputStream fileInputStream = new FileInputStream(image);
+		out.writeLong(image.length());
+		byte[] buffer = new byte[4 * 1024];
+		while((bytesRead = fileInputStream.read(buffer)) != -1) {
+			out.write(buffer, 0, bytesRead);
+			out.flush();
+		}
+		fileInputStream.close();
+		System.out.println("Image transferred succesfully");
 
 		// Réception du message d'attente
 		System.out.println(in.readUTF());
 
 		// Réception de l'image traitée
 		long t0 = System.currentTimeMillis();
-		byte[] sizeAr = new byte[4];
-		in.read(sizeAr);
-		int processedSize = ByteBuffer.wrap(sizeAr).asIntBuffer().get();
-		byte[] imageAr = new byte[processedSize];
-		in.read(imageAr);
-		BufferedImage processedImage = ImageIO.read(new ByteArrayInputStream(imageAr));
+		int bytes = 0;
+		FileOutputStream fileOutputStream = new FileOutputStream("./images/test.jpg");
+		long size = in.readLong();
+		byte[] buffer = new byte[4 * 1024];
+		while((size > 0) && ((bytes = in.read(buffer, 0, (int)Math.min(buffer.length, size))) != -1)) {
+			fileOutputStream.write(buffer, 0, bytes);
+			size -= bytes;
+		}
+		fileOutputStream.close();
 		long t1 = System.currentTimeMillis();
 		System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " processed image in " + (t1-t0) + "ms.");
 		ImageIO.write(processedImage, "jpg", new File(imageFolder + outputName));

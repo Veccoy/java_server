@@ -2,6 +2,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -38,12 +39,15 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 
 			// Réception de l'image à traiter
 			long t0 = System.currentTimeMillis();
-			byte[] sizeAr = new byte[4];
-			in.read(sizeAr);
-			int size = ByteBuffer.wrap(sizeAr).asIntBuffer().get();
-			byte[] imageAr = new byte[size];
-			in.read(imageAr);
-			BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageAr));
+			int bytesRead = 0;
+			FileOutputStream fileOutputStream = new FileOutputStream("./images/test.jpg");
+			long size = in.readLong();
+			byte[] buffer = new byte[4 * 1024];
+			while((size > 0) && ((bytesRead = in.read(buffer, 0, (int)Math.min(buffer.length, size))) != -1)) {
+				fileOutputStream.write(buffer, 0, bytesRead);
+				size -= bytesRead;
+			}
+			fileOutputStream.close();
 			long t1 = System.currentTimeMillis();
 			System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " image in " + (t1-t0) + "ms.");
 			String time = LocalDateTime.now().toString().replaceFirst("T", "@");
