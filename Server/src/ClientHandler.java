@@ -37,6 +37,11 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			String username = in.readUTF();
 			String inputName = in.readUTF();
 
+			// Réception des métadonnées de l'image
+			int width = in.readInt();
+			int height = in.readInt();
+			int type = in.readInt();
+
 			// Réception de l'image à traiter
 			long t0 = System.currentTimeMillis();
 			int bytesRead = 0;

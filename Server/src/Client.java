@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
@@ -52,9 +53,11 @@ public class Client {
 
 		// Envoi de l'image d'entrée au serveur
 		int bytesRead = 0;
-		File image = new File(imageFolder + inputName);
-		FileInputStream fileInputStream = new FileInputStream(image);
-		out.writeLong(image.length());
+		BufferedImage image = ImageIO.read(new File(imageFolder + inputName));
+		byte[] imageData = bufferedImageToByteArray(image);
+		out.write(image.getWidth());
+		out.write(image.getHeight());
+		out.write(image.getType());
 		byte[] buffer = new byte[4 * 1024];
 		while((bytesRead = fileInputStream.read(buffer)) != -1) {
 			out.write(buffer, 0, bytesRead);
@@ -144,5 +147,23 @@ public class Client {
 			password = scanner.nextLine();
 			correctPassword = jsonAccessor.checkPassword(username, password);
 		}
+	}
+
+	private static byte[] bufferedImageToByteArray(BufferedImage image) {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(image, "jpg", stream);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+
+		return stream.toByteArray();
+	}
+
+	private static BufferedImage bufferedImageFromWrapper(ImageWrapper wrapper){
+		BufferedImage bufferedImage = new BufferedImage(wrapper.getWidth(), wrapper.getHeight(), wrapper.getType());
+		bufferedImage.setData(Raster.createRaster(bufferedImage.getSampleModel(), new DataBufferByte(wrapper.getImage(), wrapper.getImage().length), new Point()));
+
+		return bufferedImage;
 	}
 }
