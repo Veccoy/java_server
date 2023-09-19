@@ -3,17 +3,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
 
 
 // Application client
@@ -51,39 +51,74 @@ public class Client {
 		out.writeUTF(username);
 		out.writeUTF(inputName);
 
-		// Envoi de l'image d'entrée au serveur
-		int bytesRead = 0;
+		// Envoi des métadonnées de l'image d'entrée au serveur
 		BufferedImage image = ImageIO.read(new File(imageFolder + inputName));
 		byte[] imageData = bufferedImageToByteArray(image);
-		out.write(image.getWidth());
-		out.write(image.getHeight());
-		out.write(image.getType());
-		byte[] buffer = new byte[4 * 1024];
-		while((bytesRead = fileInputStream.read(buffer)) != -1) {
-			out.write(buffer, 0, bytesRead);
-			out.flush();
+		long length = imageData.length;
+		int convertedLength = (int) length;
+		assert convertedLength == length;
+		out.writeInt(image.getWidth());
+		out.writeInt(image.getHeight());
+		out.writeInt(image.getType());
+		out.writeInt(convertedLength);
+
+		// Envoi de l'image d'entrée au serveur
+		byte[] outBuffer = new byte[4096];
+		int bytesWritten = 0;
+		while(bytesWritten < length) {
+			if (length - bytesWritten >= 4096) {
+				for (int i=0 ; i < outBuffer.length ; i++) {
+					outBuffer[i] = imageData[bytesWritten + i];
+				}
+				out.write(outBuffer, 0, 4096);
+				bytesWritten += 4096;
+			}
+			else {
+				int nbLeftBytes = (int) length - bytesWritten;
+				byte[] smallOutBuffer = new byte[nbLeftBytes];
+				for (int i=0 ; i < smallOutBuffer.length ; i++) {
+					smallOutBuffer[i] = imageData[bytesWritten + i];
+				}
+				out.write(smallOutBuffer, 0, nbLeftBytes);
+				bytesWritten += nbLeftBytes;
+			}
 		}
-		fileInputStream.close();
-		System.out.println("Image transferred succesfully");
+		out.flush();
+		System.out.println("Image transferred succesfully !");
 
 		// Réception du message d'attente
 		System.out.println(in.readUTF());
 
 		// Réception de l'image traitée
 		long t0 = System.currentTimeMillis();
-		int bytes = 0;
-		FileOutputStream fileOutputStream = new FileOutputStream("./images/test.jpg");
-		long size = in.readLong();
-		byte[] buffer = new byte[4 * 1024];
-		while((size > 0) && ((bytes = in.read(buffer, 0, (int)Math.min(buffer.length, size))) != -1)) {
-			fileOutputStream.write(buffer, 0, bytes);
-			size -= bytes;
+		byte[] processedImageData = new byte[convertedLength];
+		byte[] inBuffer = new byte[4096];
+		int bytesRead = 0;
+		while(bytesRead < length) {
+			if (length - bytesRead >= 4096) {
+				in.read(inBuffer, 0, 4096);
+				for (int i=0 ; i < 4096 ; i++) {
+					processedImageData[bytesRead + i] = inBuffer[i];
+				}
+				bytesRead += 4096;
+			} else {
+				int nbLeftBytes = convertedLength - bytesRead;
+				byte[] smallInBuffer = new byte[nbLeftBytes];
+				in.read(smallInBuffer, 0, nbLeftBytes);
+				for (int i=0 ; i < nbLeftBytes ; i++) {
+					processedImageData[bytesRead + i] = smallInBuffer[i];
+				}
+				bytesRead += nbLeftBytes;
+			}
 		}
-		fileOutputStream.close();
+		BufferedImage processedImage = byteArrayToBufferedImage(processedImageData);
 		long t1 = System.currentTimeMillis();
-		System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " processed image in " + (t1-t0) + "ms.");
+		System.out.println("Received " + processedImage.getHeight() + "x" + processedImage.getWidth() + " image in " + (t1-t0) + "ms.");
+		String time = LocalDateTime.now().toString().replaceFirst("T", "@");
+		System.out.format("[%s - %s:%d - %s]: image %s received after Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
+
+		// Enregistrement de l'image dans un fichier
 		ImageIO.write(processedImage, "jpg", new File(imageFolder + outputName));
-		System.out.format("The processed image has been received after Sobel processing and can be found in %s.%n", imageFolder + outputName);
 
 		// fermeture de La connexion avec le serveur
 		socket.close();
@@ -160,10 +195,13 @@ public class Client {
 		return stream.toByteArray();
 	}
 
-	private static BufferedImage bufferedImageFromWrapper(ImageWrapper wrapper){
-		BufferedImage bufferedImage = new BufferedImage(wrapper.getWidth(), wrapper.getHeight(), wrapper.getType());
-		bufferedImage.setData(Raster.createRaster(bufferedImage.getSampleModel(), new DataBufferByte(wrapper.getImage(), wrapper.getImage().length), new Point()));
+	private static BufferedImage byteArrayToBufferedImage(byte[] imageData) throws IOException {
+		ByteArrayInputStream stream = new ByteArrayInputStream(imageData);
+		BufferedImage image;
+		try {
+			image = ImageIO.read(stream);
+		} finally {}
 
-		return bufferedImage;
+		return image;
 	}
 }

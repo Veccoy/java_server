@@ -2,13 +2,16 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.time.LocalDateTime;
+import java.awt.Point;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+
+import java.io.File;
 
 public class ClientHandler extends Thread { // pour traiter la demande de chaque client sur un socket particulier
 	private String serverAddress;
@@ -41,42 +44,73 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			int width = in.readInt();
 			int height = in.readInt();
 			int type = in.readInt();
+			int length = in.readInt();
 
 			// Réception de l'image à traiter
 			long t0 = System.currentTimeMillis();
+			byte[] imageData = new byte[length];
+			byte[] inBuffer = new byte[4096];
 			int bytesRead = 0;
-			FileOutputStream fileOutputStream = new FileOutputStream("./images/test.jpg");
-			long size = in.readLong();
-			byte[] buffer = new byte[4 * 1024];
-			while((size > 0) && ((bytesRead = in.read(buffer, 0, (int)Math.min(buffer.length, size))) != -1)) {
-				fileOutputStream.write(buffer, 0, bytesRead);
-				size -= bytesRead;
+			while(bytesRead < length) {
+				if (length - bytesRead >= 4096) {
+					in.read(inBuffer, 0, 4096);
+					for (int i=0 ; i < 4096 ; i++) {
+						imageData[bytesRead + i] = inBuffer[i];
+					}
+					bytesRead += 4096;
+				} else {
+					int nbLeftBytes = length - bytesRead;
+					byte[] smallInBuffer = new byte[nbLeftBytes];
+					in.read(smallInBuffer, 0, nbLeftBytes);
+					for (int i=0 ; i < nbLeftBytes ; i++) {
+						imageData[bytesRead + i] = smallInBuffer[i];
+					}
+					bytesRead += nbLeftBytes;
+				}
 			}
-			fileOutputStream.close();
+			BufferedImage image = byteArrayToBufferedImage(imageData);
 			long t1 = System.currentTimeMillis();
 			System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " image in " + (t1-t0) + "ms.");
 			String time = LocalDateTime.now().toString().replaceFirst("T", "@");
 			System.out.format("[%s - %s:%d - %s]: image %s received for Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
+			//ImageIO.write(image, "jpg", new File("./images/received.jpg"));
 
 			// Envoi d'un message d'attente
 			out.writeUTF("Image received by the server at " + time + " and is being processed...");
 
 			// Traitement de l'image
 			BufferedImage processedImage = Sobel.process(image);
+			//ImageIO.write(image, "jpg", new File("./images/processed.jpg"));
 
 			// Envoi de l'image traitée
-			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-			ImageIO.write(processedImage, "jpg", byteArrayOutputStream);
-			byte[] processedSize = ByteBuffer.allocate(4).putInt(byteArrayOutputStream.size()).array();
-			out.write(processedSize);
-			out.write(byteArrayOutputStream.toByteArray());
+			byte[] processedImageData = bufferedImageToByteArray(processedImage);
+			System.out.println(processedImageData.length);
+			System.out.println(length);
+			byte[] outBuffer = new byte[4096];
+			int bytesWritten = 0;
+			while(bytesWritten < length) {
+				if (length - bytesWritten >= 4096) {
+					for (int i=0 ; i < outBuffer.length ; i++) {
+						outBuffer[i] = processedImageData[bytesWritten + i];
+					}
+					out.write(outBuffer, 0, 4096);
+					bytesWritten += 4096;
+				}
+				else {
+					int nbLeftBytes = (int) length - bytesWritten;
+					byte[] smallOutBuffer = new byte[nbLeftBytes];
+					for (int i=0 ; i < smallOutBuffer.length ; i++) {
+						smallOutBuffer[i] = processedImageData[bytesWritten + i];
+					}
+					out.write(smallOutBuffer, 0, nbLeftBytes);
+					bytesWritten += nbLeftBytes;
+				}
+			}
 			out.flush();
-			System.out.println("Flushed: " + System.currentTimeMillis());
+			System.out.println("Image transferred succesfully !");
 
-			
-
-			} catch (IOException e) {
-				System.out.println("Error handling client #" + clientNumber + ": " + e);
+		} catch (IOException e) {
+			System.out.println("Error handling client #" + clientNumber + ": " + e);
 		} finally {
 			try {
 				socket.close();
@@ -84,5 +118,26 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 				System.out.println("Couldn't close a socket, what's going on?");}
 			System.out.println("Connection with client #" + clientNumber+ " closed");
 		}
+	}
+
+	private byte[] bufferedImageToByteArray(BufferedImage image) {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		try {
+			ImageIO.write(image, "jpg", stream);
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+
+		return stream.toByteArray();
+	}
+
+	private BufferedImage byteArrayToBufferedImage(byte[] imageData) throws IOException {
+		ByteArrayInputStream stream = new ByteArrayInputStream(imageData);
+		BufferedImage image;
+		try {
+			image = ImageIO.read(stream);
+		} finally {}
+
+		return image;
 	}
 };
