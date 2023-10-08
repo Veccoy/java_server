@@ -1,4 +1,3 @@
-import java.util.HashMap;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -44,7 +43,7 @@ public class Server {
 		} 
 	}
 	
-	public static void getAddress(Scanner scanner) {
+	private static void getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
 		
@@ -61,7 +60,7 @@ public class Server {
 		}
 	}
 	
-	public static void getPort(Scanner scanner) {
+	private static void getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		
 		while (!isAcceptablePort) {

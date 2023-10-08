@@ -5,19 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.awt.image.BufferedImage;
-
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
-
 import java.time.LocalDateTime;
-import java.awt.Point;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
-import java.io.File;
 
 public class ClientHandler extends Thread { // pour traiter la demande de chaque client sur un socket particulier
 	private String serverAddress;
@@ -55,6 +44,37 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			// Réception de l'image à traiter
 			long t0 = System.currentTimeMillis();
 			byte[] imageData = new byte[length];
+			imageData = receiveImageToProcess(imageData, length, in);
+
+			BufferedImage image = byteArrayToBufferedImage(imageData);
+			long t1 = System.currentTimeMillis();
+			System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " image in " + (t1-t0) + "ms.");
+			String time = LocalDateTime.now().toString().replaceFirst("T", "@");
+			System.out.format("[%s - %s:%d - %s]: image %s received for Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
+
+			// Envoi d'un message d'attente
+			out.writeUTF("Image received by the server at " + time + " and is being processed...");
+
+			// Traitement de l'image
+			BufferedImage processedImage = Sobel.process(image);
+
+			// Envoi de l'image traitée
+			byte[] processedImageData = bufferedImageToByteArray(processedImage);
+			transmitImageToClient(processedImageData, out);
+
+		} catch (IOException e) {
+			System.out.println("Error handling client #" + clientNumber + ": " + e);
+		} finally {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				System.out.println("Couldn't close a socket, what's going on?");}
+			System.out.println("Connection with client #" + clientNumber+ " closed");
+		}
+	}
+
+	private static byte[] receiveImageToProcess(byte[] imageData, int length, DataInputStream in) {
+		try {
 			byte[] inBuffer = new byte[4096];
 			int bytesRead = 0;
 			while(bytesRead < length) {
@@ -74,20 +94,15 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					bytesRead += nbLeftBytes;
 				}
 			}
-			BufferedImage image = byteArrayToBufferedImage(imageData);
-			long t1 = System.currentTimeMillis();
-			System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " image in " + (t1-t0) + "ms.");
-			String time = LocalDateTime.now().toString().replaceFirst("T", "@");
-			System.out.format("[%s - %s:%d - %s]: image %s received for Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
+			return imageData;
+		} catch(IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
-			// Envoi d'un message d'attente
-			out.writeUTF("Image received by the server at " + time + " and is being processed...");
-
-			// Traitement de l'image
-			BufferedImage processedImage = Sobel.process(image);
-
-			// Envoi de l'image traitée
-			byte[] processedImageData = bufferedImageToByteArray(processedImage);
+	private static void transmitImageToClient(byte[] processedImageData, DataOutputStream out) {
+		try {
 			byte[] outBuffer = new byte[4096];
 			int bytesWritten = 0;
 			while(bytesWritten < processedImageData.length) {
@@ -108,17 +123,10 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					bytesWritten += nbLeftBytes;
 				}
 			}
-			out.flush();
+		    out.flush();
 			System.out.println("Image transferred succesfully !");
-
-		} catch (IOException e) {
-			System.out.println("Error handling client #" + clientNumber + ": " + e);
-		} finally {
-			try {
-				socket.close();
-			} catch (IOException e) {
-				System.out.println("Couldn't close a socket, what's going on?");}
-			System.out.println("Connection with client #" + clientNumber+ " closed");
+		} catch(IOException e) {
+			e.printStackTrace();
 		}
 	}
 

@@ -10,10 +10,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
 
 
 // Application client
@@ -63,28 +60,7 @@ public class Client {
 		out.writeInt(convertedLength);
 
 		// Envoi de l'image d'entrée au serveur
-		byte[] outBuffer = new byte[4096];
-		int bytesWritten = 0;
-		while(bytesWritten < length) {
-			if (length - bytesWritten >= 4096) {
-				for (int i=0 ; i < outBuffer.length ; i++) {
-					outBuffer[i] = imageData[bytesWritten + i];
-				}
-				out.write(outBuffer, 0, 4096);
-				bytesWritten += 4096;
-			}
-			else {
-				int nbLeftBytes = (int) length - bytesWritten;
-				byte[] smallOutBuffer = new byte[nbLeftBytes];
-				for (int i=0 ; i < smallOutBuffer.length ; i++) {
-					smallOutBuffer[i] = imageData[bytesWritten + i];
-				}
-				out.write(smallOutBuffer, 0, nbLeftBytes);
-				bytesWritten += nbLeftBytes;
-			}
-		}
-		out.flush();
-		System.out.println("Image transferred succesfully !");
+		transmitImageToServer(imageData, convertedLength, out);
 
 		// Réception du message d'attente
 		System.out.println(in.readUTF());
@@ -92,26 +68,8 @@ public class Client {
 		// Réception de l'image traitée
 		long t0 = System.currentTimeMillis();
 		byte[] processedImageData = new byte[convertedLength];
-		byte[] inBuffer = new byte[4096];
-		int bytesRead = 0;
-		while(bytesRead < length) {
-			if (length - bytesRead >= 4096) {
-				in.read(inBuffer, 0, 4096);
-				for (int i=0 ; i < 4096 ; i++) {
-					processedImageData[bytesRead + i] = inBuffer[i];
-				}
-				bytesRead += 4096;
-			} else {
-				int nbLeftBytes = convertedLength - bytesRead;
-				byte[] smallInBuffer = new byte[nbLeftBytes];
-				in.read(smallInBuffer, 0, nbLeftBytes);
-				for (int i=0 ; i < nbLeftBytes ; i++) {
-					processedImageData[bytesRead + i] = smallInBuffer[i];
-				}
-				bytesRead += nbLeftBytes;
-			}
-		}
-		System.out.println(convertedLength);
+		processedImageData = receiveProcessedImage(processedImageData, convertedLength, in);
+
 		BufferedImage processedImage = byteArrayToBufferedImage(processedImageData);
 		long t1 = System.currentTimeMillis();
 		System.out.println("Received " + processedImage.getHeight() + "x" + processedImage.getWidth() + " image in " + (t1-t0) + "ms.");
@@ -125,7 +83,7 @@ public class Client {
 		socket.close();
 	}
 
-	public static String getAddress(Scanner scanner) {
+	private static String getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
 		String address = "";
@@ -145,7 +103,7 @@ public class Client {
 		return address;
 	}
 	
-	public static int getPort(Scanner scanner) {
+	private static int getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		int port = 0;
 		
@@ -162,7 +120,7 @@ public class Client {
 		return port;
 	}
 
-	public static void checkLogin(Scanner scanner) {
+	private static void checkLogin(Scanner scanner) {
 		JsonAccessor jsonAccessor = new JsonAccessor();
 
 		System.out.println("Enter your username : ");
@@ -185,8 +143,61 @@ public class Client {
 		}
 	}
 
-	private static void transmissionImageServer(BufferedImage image, long length) {
+	private static void transmitImageToServer(byte[] imageData, long length, DataOutputStream out) {
+		try {
+			byte[] outBuffer = new byte[4096];
+			int bytesWritten = 0;
+			while(bytesWritten < length) {
+				if (length - bytesWritten >= 4096) {
+					for (int i=0 ; i < outBuffer.length ; i++) {
+						outBuffer[i] = imageData[bytesWritten + i];
+					}
+					out.write(outBuffer, 0, 4096);
+					bytesWritten += 4096;
+				}
+				else {
+					int nbLeftBytes = (int) length - bytesWritten;
+					byte[] smallOutBuffer = new byte[nbLeftBytes];
+					for (int i=0 ; i < smallOutBuffer.length ; i++) {
+						smallOutBuffer[i] = imageData[bytesWritten + i];
+					}
+					out.write(smallOutBuffer, 0, nbLeftBytes);
+					bytesWritten += nbLeftBytes;
+				}
+			}
+			out.flush();
+		    System.out.println("Image transferred succesfully !");
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
 
+	private static byte[] receiveProcessedImage(byte[] processedImageData, int convertedLength, DataInputStream in) {
+		try{
+			byte[] inBuffer = new byte[4096];
+			int bytesRead = 0;
+			while(bytesRead < convertedLength) {
+				if (convertedLength - bytesRead >= 4096) {
+					in.read(inBuffer, 0, 4096);
+					for (int i=0 ; i < 4096 ; i++) {
+						processedImageData[bytesRead + i] = inBuffer[i];
+					}
+					bytesRead += 4096;
+				} else {
+					int nbLeftBytes = convertedLength - bytesRead;
+					byte[] smallInBuffer = new byte[nbLeftBytes];
+					in.read(smallInBuffer, 0, nbLeftBytes);
+					for (int i=0 ; i < nbLeftBytes ; i++) {
+						processedImageData[bytesRead + i] = smallInBuffer[i];
+					}
+					bytesRead += nbLeftBytes;
+				}
+			}
+			return processedImageData;
+		} catch(IOException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	private static byte[] bufferedImageToByteArray(BufferedImage image) {
