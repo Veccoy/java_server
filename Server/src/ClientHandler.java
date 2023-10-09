@@ -36,9 +36,6 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			String inputName = in.readUTF();
 
 			// Réception des métadonnées de l'image
-			int width = in.readInt();
-			int height = in.readInt();
-			int type = in.readInt();
 			int length = in.readInt();
 
 			// Réception de l'image à traiter
@@ -73,6 +70,8 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		}
 	}
 
+	//Fonction qui permet de recevoir les données en bytes de l'image à filtrer de la fonction transmitImageToServer() de classe Client
+	//à l'aide d'une boucle qui recoit petit par petit les bytes de l'image à filtrer et les mets dans une array de bytes.
 	private static byte[] receiveImageToProcess(byte[] imageData, int length, DataInputStream in) {
 		try {
 			byte[] inBuffer = new byte[4096];
@@ -101,6 +100,9 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		}
 	}
 
+	//Fonction qui permet d'envoyer au client les données en bytes de l'image filtrer à l'aide d'une boucle
+	// qui envoie petit par petit les bytes de l'image filtrer au client. Le client recevra les données par la fonction
+	//receiveProcessedImage() de la classe Client
 	private static void transmitImageToClient(byte[] processedImageData, DataOutputStream out) {
 		try {
 			byte[] outBuffer = new byte[4096];
@@ -130,6 +132,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		}
 	}
 
+	//Fonction qui permet de transformer un objet de type BufferedImage en objet de type byte[]
 	private byte[] bufferedImageToByteArray(BufferedImage image) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
@@ -140,7 +143,8 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 
 		return stream.toByteArray();
 	}
-
+	
+	//Fonction qui permet de transformer un objet de type byte[] en objet de type BufferedImage
 	private BufferedImage byteArrayToBufferedImage(byte[] imageData) throws IOException {
 		ByteArrayInputStream stream = new ByteArrayInputStream(imageData);
 		BufferedImage image;

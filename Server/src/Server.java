@@ -43,6 +43,7 @@ public class Server {
 		} 
 	}
 	
+	//Fonction qui permet d'établir l'adresse selon laquelle le serveur sera lancé et selon laquelle le client pourrait se conneté avec.
 	private static void getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
@@ -60,6 +61,7 @@ public class Server {
 		}
 	}
 	
+	//Fonction qui permet d'établir le port selon laquelle le serveur sera lancé et selon laquelle le client pourrait se connecté avec.
 	private static void getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		

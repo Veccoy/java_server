@@ -7,8 +7,9 @@ import org.json.simple.parser.JSONParser;
 
 public class JsonAccessor {
     private static String databaseFile = "./database/clients.json";
-    private static String database;
 
+    //Fonction qui est appelé dans la fonction checkLogin() de la classe Client qui lie les username des différents compte client
+    // du fichier clients.json et si le username en paramètre correspond à une qui existe, il retourne vrai, sinon il retourne faux.
     public boolean checkUsername(String username) {
         try (FileReader reader = new FileReader(databaseFile)) {
             try {
@@ -29,6 +30,9 @@ public class JsonAccessor {
         return false;
     }
 
+    //Fonction qui est appelé dans la fonction checkLogin de la classe Client qui va aller chercher la valeur du mot de passe associé
+    // au username en paramètre associé au compte, si le mot de passe associé au compte est la même que celui dans la base de donnée
+    // ca retourne vrai, si non, ca retourne faux
     public boolean checkPassword(String username, String password) {
         try (FileReader reader = new FileReader(databaseFile)) {
             try {
@@ -51,6 +55,8 @@ public class JsonAccessor {
         return false;
     }
 
+    //Fonction qui permet de créer un nouveau compte client dans le cas ou le username que le client a entrée n'est pas associé à une compte existant
+    // dans la base de donnée, il va créer un compte pour le client selon le username et le mot de passe que le client avait entrée. 
     public void addUser(String username, String password) {
         try (FileReader reader = new FileReader(databaseFile)) {
             try {

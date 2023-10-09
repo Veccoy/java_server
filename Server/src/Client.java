@@ -21,7 +21,7 @@ public class Client {
 
 	public static void main(String[] args) throws Exception {
 
-		// Adresse et port du serveur, Nom d'utilisateur et mot de passe
+		// Obtenir l'adresse et le port du serveur, ainsi que le nom d'utilisateur et mot de passe du client
 		Scanner scanner = new Scanner(System.in);
 		String serverAddress = getAddress(scanner);
 		int serverPort = getPort(scanner);
@@ -44,7 +44,7 @@ public class Client {
 		System.out.println("Please write the name of the future processed image (with .jpg extension):"); // Ask for the name of the ouptut image
 		String outputName = scanner.nextLine();
 
-		// Envoi d'informations sur le client
+		// Envoi des informations sur le client au serveur
 		out.writeUTF(username);
 		out.writeUTF(inputName);
 
@@ -54,9 +54,6 @@ public class Client {
 		long length = imageData.length;
 		int convertedLength = (int) length;
 		assert convertedLength == length;
-		out.writeInt(image.getWidth());
-		out.writeInt(image.getHeight());
-		out.writeInt(image.getType());
 		out.writeInt(convertedLength);
 
 		// Envoi de l'image d'entrée au serveur
@@ -83,6 +80,8 @@ public class Client {
 		socket.close();
 	}
 
+	//fonction permettant de valider si l'adresse entrée du client porte un format d'adresse valide, et si oui, retourne l'adresse,
+	// si non, le client doit entrée à nouveau une adresse valide. 
 	private static String getAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
@@ -103,6 +102,8 @@ public class Client {
 		return address;
 	}
 	
+	//fonction permettant de valider si le port entré du client porte un format d'adresse valide, alors entre 5000 et 5050,
+	// et si oui, retourne le port, si non, le client doit entrée un port valide à nouveau. 
 	private static int getPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		int port = 0;
@@ -120,6 +121,9 @@ public class Client {
 		return port;
 	}
 
+	//Fonction qui demande au client pour ses informations de connexions, et appelle les fonctions de la classe JsonAccessor 
+	// checkUsername() et checkPassword() afin de vérifier si un compte existe déjà avec ses informations, et si non, 
+	//on créer un nouveau compte pour le client automatiquement avec les données entrées
 	private static void checkLogin(Scanner scanner) {
 		JsonAccessor jsonAccessor = new JsonAccessor();
 
@@ -143,6 +147,8 @@ public class Client {
 		}
 	}
 
+	//Fonction qui permet d'envoyer au serveur les données en bytes de l'image que le client veut filtrer à l'aide d'une boucle
+	// qui envoie petit par petit les bytes de l'image qui sera recu par la fonction receiveImageToProcess() de la classe ClientHandler
 	private static void transmitImageToServer(byte[] imageData, long length, DataOutputStream out) {
 		try {
 			byte[] outBuffer = new byte[4096];
@@ -172,6 +178,9 @@ public class Client {
 		}
 	}
 
+	//Fonction qui permet de recevoir les données en bytes de l'image filtrer du serveur à l'aide d'une boucle
+	// qui recoit petit par petit les bytes de l'image filtrer et les mets dans une array de bytes. La fonction
+	// recoit les données à partir de la fonction transmitImageToClient() de la classe ClientHandler
 	private static byte[] receiveProcessedImage(byte[] processedImageData, int convertedLength, DataInputStream in) {
 		try{
 			byte[] inBuffer = new byte[4096];
@@ -200,6 +209,7 @@ public class Client {
 		}
 	}
 
+	//Fonction qui permet de transformer un objet de type BufferedImage en objet de type byte[]
 	private static byte[] bufferedImageToByteArray(BufferedImage image) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
@@ -211,6 +221,7 @@ public class Client {
 		return stream.toByteArray();
 	}
 
+	//Fonction qui permet de transformer un objet de type byte[] en objet de type BufferedImage
 	private static BufferedImage byteArrayToBufferedImage(byte[] imageData) throws IOException {
 		ByteArrayInputStream stream = new ByteArrayInputStream(imageData);
 		BufferedImage image;
