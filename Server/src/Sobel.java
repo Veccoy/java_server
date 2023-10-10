@@ -12,10 +12,11 @@ public class Sobel {
 	
 	  int[][] edgeColors = new int[x][y];
 	  int maxGradient = -1;
+	  System.out.println(image.getRGB(0, 0));
 	
 	  for (int i = 1; i < x - 1; i++) {
 	      for (int j = 1; j < y - 1; j++) {
-	
+
 	          int val00 = getGrayScale(image.getRGB(i - 1, j - 1));
 	          int val01 = getGrayScale(image.getRGB(i - 1, j));
 	          int val02 = getGrayScale(image.getRGB(i - 1, j + 1));

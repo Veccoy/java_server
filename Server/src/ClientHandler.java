@@ -3,15 +3,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+//import java.io.File;
 import java.net.Socket;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.time.LocalDateTime;
-import java.awt.Point;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
-
-import java.io.File;
 
 public class ClientHandler extends Thread { // pour traiter la demande de chaque client sur un socket particulier
 	private String serverAddress;
@@ -124,8 +120,14 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
 			ImageIO.write(image, "jpg", stream);
-		} catch(IOException e) {
-			e.printStackTrace();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		} finally {
+			try {
+				stream.close();
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		return stream.toByteArray();

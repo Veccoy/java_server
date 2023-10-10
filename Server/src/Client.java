@@ -4,16 +4,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
-import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.net.Socket;
+import java.time.LocalDateTime;
 import javax.imageio.ImageIO;
-import java.awt.Point;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
 
 
 // Application client
@@ -150,7 +147,12 @@ public class Client {
 		
 		while (!isAcceptablePort) {
 			System.out.println("Enter the server port : ");
-			port = Integer.parseInt(scanner.nextLine());
+			try {
+				port = Integer.parseInt(scanner.nextLine());
+			} catch (NumberFormatException e) {
+				System.out.println("The server port provided is not a number !");
+				continue;
+			}
 			if((port >= 5000) && (port <= 5050)) {
 				isAcceptablePort = true; 
 			} else {

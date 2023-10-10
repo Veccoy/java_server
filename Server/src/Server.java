@@ -1,4 +1,3 @@
-import java.util.HashMap;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -66,7 +65,12 @@ public class Server {
 		
 		while (!isAcceptablePort) {
 			System.out.println("Enter the server port : ");
-			serverPort = Integer.parseInt(scanner.nextLine());
+			try {
+				serverPort = Integer.parseInt(scanner.nextLine());
+			} catch (NumberFormatException e) {
+				System.out.println("The server port provided is not a number !");
+				continue;
+			}
 			if((serverPort >= 5000) && (serverPort <= 5050)) {
 				isAcceptablePort = true; 
 			} else {
