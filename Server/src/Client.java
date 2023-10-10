@@ -40,13 +40,7 @@ public class Client {
 
 		// Demande des noms des images d'entrée et de sortie
 		String inputName = getImageName(scanner, "input");
-		// System.out.println("Please write the name of the image you want to be processed (with .jpg extension):"); // Ask for the name of the input image
-		// String inputName = scanner.nextLine();
-
 		String outputName = getImageName(scanner, "output");
-		// System.out.println("Please write the name of the future processed image (with .jpg extension):"); // Ask for the name of the ouptut image
-		// String outputName = getProcessedImageName(scanner);
-		// scanner.nextLine();
 
 		// Envoi des informations sur le client au serveur
 		out.writeUTF(username);
