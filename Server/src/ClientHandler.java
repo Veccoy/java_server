@@ -37,14 +37,46 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			String inputName = in.readUTF();
 
 			// Réception des métadonnées de l'image
-			int width = in.readInt();
-			int height = in.readInt();
-			int type = in.readInt();
 			int length = in.readInt();
 
 			// Réception de l'image à traiter
 			long t0 = System.currentTimeMillis();
 			byte[] imageData = new byte[length];
+			imageData = receiveImageToProcess(imageData, length, in);
+
+			BufferedImage image = byteArrayToBufferedImage(imageData);
+			long t1 = System.currentTimeMillis();
+			System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " image in " + (t1-t0) + "ms.");
+			String time = LocalDateTime.now().toString().replaceFirst("T", "@");
+			System.out.format("[%s - %s:%d - %s]: image %s received for Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
+			//ImageIO.write(image, "jpg", new File("./images/received.jpg"));
+
+			// Envoi d'un message d'attente
+			out.writeUTF("Image received by the server at " + time + " and is being processed...");
+
+			// Traitement de l'image
+			BufferedImage processedImage = Sobel.process(image);
+			//ImageIO.write(image, "jpg", new File("./images/processed.jpg"));
+
+			// Envoi de l'image traitée
+			byte[] processedImageData = bufferedImageToByteArray(processedImage);
+			transmitImageToClient(processedImageData, out);
+
+		} catch (IOException e) {
+			System.out.println("Error handling client #" + clientNumber + ": " + e);
+		} finally {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				System.out.println("Couldn't close a socket, what's going on?");}
+			System.out.println("Connection with client #" + clientNumber+ " closed");
+		}
+	}
+
+	//Fonction qui permet de recevoir les données en bytes de l'image à filtrer de la fonction transmitImageToServer() de classe Client
+	//à l'aide d'une boucle qui recoit petit par petit les bytes de l'image à filtrer et les mets dans une array de bytes.
+	private static byte[] receiveImageToProcess(byte[] imageData, int length, DataInputStream in) {
+		try {
 			byte[] inBuffer = new byte[4096];
 			int bytesRead = 0;
 			while(bytesRead < length) {
@@ -64,28 +96,22 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					bytesRead += nbLeftBytes;
 				}
 			}
-			BufferedImage image = byteArrayToBufferedImage(imageData);
-			long t1 = System.currentTimeMillis();
-			System.out.println("Received " + image.getHeight() + "x" + image.getWidth() + " image in " + (t1-t0) + "ms.");
-			String time = LocalDateTime.now().toString().replaceFirst("T", "@");
-			System.out.format("[%s - %s:%d - %s]: image %s received for Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
-			//ImageIO.write(image, "jpg", new File("./images/received.jpg"));
+			return imageData;
+		} catch(IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
-			// Envoi d'un message d'attente
-			out.writeUTF("Image received by the server at " + time + " and is being processed...");
-
-			// Traitement de l'image
-			BufferedImage processedImage = Sobel.process(image);
-			//ImageIO.write(image, "jpg", new File("./images/processed.jpg"));
-
-			// Envoi de l'image traitée
-			byte[] processedImageData = bufferedImageToByteArray(processedImage);
-			System.out.println(processedImageData.length);
-			System.out.println(length);
+	//Fonction qui permet d'envoyer au client les données en bytes de l'image filtrer à l'aide d'une boucle
+	// qui envoie petit par petit les bytes de l'image filtrer au client. Le client recevra les données par la fonction
+	//receiveProcessedImage() de la classe Client
+	private static void transmitImageToClient(byte[] processedImageData, DataOutputStream out) {
+		try {
 			byte[] outBuffer = new byte[4096];
 			int bytesWritten = 0;
-			while(bytesWritten < length) {
-				if (length - bytesWritten >= 4096) {
+			while(bytesWritten < processedImageData.length) {
+				if (processedImageData.length - bytesWritten >= 4096) {
 					for (int i=0 ; i < outBuffer.length ; i++) {
 						outBuffer[i] = processedImageData[bytesWritten + i];
 					}
@@ -93,7 +119,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					bytesWritten += 4096;
 				}
 				else {
-					int nbLeftBytes = (int) length - bytesWritten;
+					int nbLeftBytes = (int) processedImageData.length - bytesWritten;
 					byte[] smallOutBuffer = new byte[nbLeftBytes];
 					for (int i=0 ; i < smallOutBuffer.length ; i++) {
 						smallOutBuffer[i] = processedImageData[bytesWritten + i];
@@ -102,37 +128,26 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					bytesWritten += nbLeftBytes;
 				}
 			}
-			out.flush();
+		    out.flush();
 			System.out.println("Image transferred succesfully !");
-
-		} catch (IOException e) {
-			System.out.println("Error handling client #" + clientNumber + ": " + e);
-		} finally {
-			try {
-				socket.close();
-			} catch (IOException e) {
-				System.out.println("Couldn't close a socket, what's going on?");}
-			System.out.println("Connection with client #" + clientNumber+ " closed");
+		} catch(IOException e) {
+			e.printStackTrace();
 		}
 	}
 
+	//Fonction qui permet de transformer un objet de type BufferedImage en objet de type byte[]
 	private byte[] bufferedImageToByteArray(BufferedImage image) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
 			ImageIO.write(image, "jpg", stream);
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		} finally {
-			try {
-				stream.close();
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
+		} catch(IOException e) {
+			e.printStackTrace();
 		}
 
 		return stream.toByteArray();
 	}
-
+	
+	//Fonction qui permet de transformer un objet de type byte[] en objet de type BufferedImage
 	private BufferedImage byteArrayToBufferedImage(byte[] imageData) throws IOException {
 		ByteArrayInputStream stream = new ByteArrayInputStream(imageData);
 		BufferedImage image;

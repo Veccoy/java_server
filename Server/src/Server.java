@@ -8,7 +8,6 @@ import java.util.Scanner;
 // Application Serveur
 public class Server {
 	private static ServerSocket Listener;
-	// private HashMap<String, String> userData = new HashMap<String, String>();
 	private static String serverAddress = "";
 	private static int serverPort = 0;	
 
@@ -18,8 +17,8 @@ public class Server {
 
 		// Adresse et port du serveur
 		Scanner scanner = new Scanner(System.in);
-		getAddress(scanner);
-		getPort(scanner);
+		setAddress(scanner);
+		setPort(scanner);
 		
 		// Création de la connexion pour communiquer avec les clients
 		Listener = new ServerSocket();
@@ -43,7 +42,8 @@ public class Server {
 		} 
 	}
 	
-	public static void getAddress(Scanner scanner) {
+	// Fonction qui permet d'établir l'adresse selon laquelle le serveur sera lancé et selon laquelle le client pourrait se conneté avec.
+	private static void setAddress(Scanner scanner) {
 		boolean isAcceptableAddress = false;
 		String patternString = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$";
 		
@@ -60,7 +60,8 @@ public class Server {
 		}
 	}
 	
-	public static void getPort(Scanner scanner) {
+	// Fonction qui permet d'établir le port selon laquelle le serveur sera lancé et selon laquelle le client pourrait se connecté avec.
+	private static void setPort(Scanner scanner) {
 		boolean isAcceptablePort = false;
 		
 		while (!isAcceptablePort) {
