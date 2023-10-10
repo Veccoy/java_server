@@ -39,10 +39,14 @@ public class Client {
 		System.out.println(in.readUTF());
 
 		// Demande des noms des images d'entrée et de sortie
-		System.out.println("Please write the name of the image you want to be processed (with .jpg extension):"); // Ask for the name of the input image
-		String inputName = scanner.nextLine();
-		System.out.println("Please write the name of the future processed image (with .jpg extension):"); // Ask for the name of the ouptut image
-		String outputName = scanner.nextLine();
+		String inputName = getImageName(scanner, "input");
+		// System.out.println("Please write the name of the image you want to be processed (with .jpg extension):"); // Ask for the name of the input image
+		// String inputName = scanner.nextLine();
+
+		String outputName = getImageName(scanner, "output");
+		// System.out.println("Please write the name of the future processed image (with .jpg extension):"); // Ask for the name of the ouptut image
+		// String outputName = getProcessedImageName(scanner);
+		// scanner.nextLine();
 
 		// Envoi des informations sur le client au serveur
 		out.writeUTF(username);
@@ -147,6 +151,32 @@ public class Client {
 		}
 	}
 
+	//Fonction permettant au client à entrer le nom de l'image à traité et le nom de l'image traité et gère le nom de ceux dans le cas 
+	// ou les extensions ne sont pas valides.
+	private static String getImageName(Scanner scanner, String imageType) {
+		boolean isValidName = false;
+		String imageName = "";
+		while(!isValidName) {
+			if(imageType == "input") {
+				System.out.println("Please write the name of the image you want to be processed (with either .jpg OR .png OR .gif extension):");
+				imageName = scanner.nextLine();
+			}
+			else {
+				System.out.println("Please write the name of the future processed image (with either .jpg OR .png OR .gif extension):");
+				imageName = scanner.nextLine();
+			}
+
+			if(imageName.contains(".jpg") || imageName.contains(".gif") || imageName.contains(".png")) {
+				System.out.println(imageName);
+				isValidName = true;
+			}
+			else {
+				System.out.println("Invalid iamge extension. Please try again!");
+			}
+		}
+
+		return imageName;
+	}
 	//Fonction qui permet d'envoyer au serveur les données en bytes de l'image que le client veut filtrer à l'aide d'une boucle
 	// qui envoie petit par petit les bytes de l'image qui sera recu par la fonction receiveImageToProcess() de la classe ClientHandler
 	private static void transmitImageToServer(byte[] imageData, long length, DataOutputStream out) {

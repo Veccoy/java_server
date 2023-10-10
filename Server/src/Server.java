@@ -8,7 +8,6 @@ import java.util.Scanner;
 // Application Serveur
 public class Server {
 	private static ServerSocket Listener;
-	// private HashMap<String, String> userData = new HashMap<String, String>();
 	private static String serverAddress = "";
 	private static int serverPort = 0;	
 
