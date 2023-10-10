@@ -72,7 +72,7 @@ public class Client {
 		System.out.format("[%s - %s:%d - %s]: image %s received after Sobel processing.%n", username, serverAddress, serverPort, time, inputName);
 
 		// Enregistrement de l'image dans un fichier
-		ImageIO.write(processedImage, "jpg", new File(imageFolder + outputName));
+		ImageIO.write(processedImage, outputName.substring(outputName.lastIndexOf('.')+1), new File(imageFolder + outputName));
 
 		// fermeture de La connexion avec le serveur
 		socket.close();
@@ -152,15 +152,14 @@ public class Client {
 		String imageName = "";
 		while(!isValidName) {
 			if(imageType == "input") {
-				System.out.println("Please write the name of the image you want to be processed (with either .jpg OR .png OR .gif extension):");
-				imageName = scanner.nextLine();
+				System.out.println("Please write the name of the image you want to be processed (with either .jpg OR .png extension):");
 			}
 			else {
-				System.out.println("Please write the name of the future processed image (with either .jpg OR .png OR .gif extension):");
-				imageName = scanner.nextLine();
+				System.out.println("Please write the name of the future processed image (with either .jpg OR .png extension):");
 			}
+			imageName = scanner.nextLine();
 
-			if(imageName.contains(".jpg") || imageName.contains(".gif") || imageName.contains(".png")) {
+			if(imageName.contains(".jpg") || imageName.contains(".png")) {
 				isValidName = true;
 			}
 			else {
