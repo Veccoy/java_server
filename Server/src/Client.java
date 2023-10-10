@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.net.Socket;
-import java.time.LocalDateTime;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
