@@ -167,7 +167,6 @@ public class Client {
 			}
 
 			if(imageName.contains(".jpg") || imageName.contains(".gif") || imageName.contains(".png")) {
-				System.out.println(imageName);
 				isValidName = true;
 			}
 			else {
